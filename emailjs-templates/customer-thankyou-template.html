@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #0c2d1a 0%, #1a4d2e 100%);
+            color: #CDA434;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #0c2d1a;
+            margin-bottom: 20px;
+        }
+        .message {
+            color: #555;
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 25px;
+        }
+        .info-box {
+            background-color: #fffef5;
+            border-left: 4px solid #CDA434;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+        }
+        .info-box h3 {
+            margin: 0 0 15px 0;
+            color: #0c2d1a;
+            font-size: 16px;
+        }
+        .info-box ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #555;
+        }
+        .info-box li {
+            margin-bottom: 8px;
+        }
+        .cta-box {
+            background-color: #0c2d1a;
+            color: #ffffff;
+            padding: 25px;
+            text-align: center;
+            border-radius: 8px;
+            margin: 30px 0;
+        }
+        .cta-box h3 {
+            margin: 0 0 10px 0;
+            color: #CDA434;
+        }
+        .cta-box p {
+            margin: 0;
+            font-size: 14px;
+        }
+        .footer {
+            background-color: #f9f9f9;
+            padding: 25px;
+            text-align: center;
+            font-size: 13px;
+            color: #666;
+            border-top: 2px solid #e0e0e0;
+        }
+        .footer strong {
+            color: #0c2d1a;
+        }
+        .contact-info {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🌟 Thank You for Your Enquiry!</h1>
+            <p>Crestline Journeys</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="greeting">
+                <strong>Dear {{to_name}},</strong>
+            </div>
+
+            <div class="message">
+                <p>Thank you for your enquiry! We're absolutely <strong>excited</strong> to help you plan your journey through Africa.</p>
+                
+                <p>Our expert Travel Designers have received your request and will contact you within <strong>24-48 hours</strong> to discuss your dream adventure and create a bespoke itinerary tailored just for you.</p>
+            </div>
+
+            <!-- Enquiry Summary -->
+            <div class="info-box">
+                <h3>📋 Your Enquiry Summary</h3>
+                <ul>
+                    <li><strong>Destination:</strong> {{destination}}</li>
+                    <li><strong>Countries of Interest:</strong> {{countries}}</li>
+                    <li><strong>Traveling With:</strong> {{travel_with}}</li>
+                    <li><strong>Budget Range:</strong> {{budget}}</li>
+                    <li><strong>Enquiry Reference:</strong> #{{enquiry_id}}</li>
+                </ul>
+            </div>
+
+            <!-- What's Next -->
+            <div class="cta-box">
+                <h3>✨ What Happens Next?</h3>
+                <p>Our team will review your preferences and contact you to discuss your perfect African adventure!</p>
+            </div>
+
+            <div class="message">
+                <p>If you have any <strong>urgent questions</strong> or need immediate assistance, please don't hesitate to reach out to us directly.</p>
+            </div>
+
+            <div class="contact-info">
+                <p><strong>Need Help?</strong><br>
+                Email: info@crestlinejourneys.com<br>
+                Phone: +250 788 123 456</p>
+            </div>
+
+            <div class="message">
+                <p>We look forward to creating an <strong>unforgettable journey</strong> for you!</p>
+            </div>
+
+            <p style="margin-top: 30px;">
+                <strong>Best regards,</strong><br>
+                <span style="color: #CDA434;">The Crestline Journeys Team</span>
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>Crestline Journeys</strong></p>
+            <p>Your gateway to authentic, responsible, and life-changing travel experiences in Africa.</p>
+            <p style="margin-top: 15px; font-size: 12px;">
+                &copy; 2025 Crestline Journeys. All rights reserved.<br>
+                Kigali, Rwanda
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+
