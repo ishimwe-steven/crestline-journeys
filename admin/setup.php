@@ -25,6 +25,30 @@ $imagesTable = "CREATE TABLE IF NOT EXISTS site_images (
     FOREIGN KEY (uploaded_by) REFERENCES admin_users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
 
+// Create enquiries table
+$enquiriesTable = "CREATE TABLE IF NOT EXISTS enquiries (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    destination_known VARCHAR(255),
+    countries TEXT,
+    region VARCHAR(255),
+    travel_time_choice VARCHAR(255),
+    travel_dates VARCHAR(255),
+    travel_with VARCHAR(100),
+    budget VARCHAR(100),
+    trip_details TEXT,
+    referred VARCHAR(50),
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100),
+    email VARCHAR(255) NOT NULL,
+    phone VARCHAR(50),
+    preferred_contact VARCHAR(50),
+    qr_code_path VARCHAR(500),
+    qr_code_data TEXT,
+    status VARCHAR(50) DEFAULT 'new',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
 // Execute table creation
 if ($conn->query($adminTable)) {
     echo "Admin users table created successfully.<br>";
@@ -36,6 +60,21 @@ if ($conn->query($imagesTable)) {
     echo "Site images table created successfully.<br>";
 } else {
     echo "Error creating site_images table: " . $conn->error . "<br>";
+}
+
+if ($conn->query($enquiriesTable)) {
+    echo "Enquiries table created successfully.<br>";
+} else {
+    echo "Error creating enquiries table: " . $conn->error . "<br>";
+}
+
+// Check if enquiries table needs QR code columns (for existing installations)
+$checkColumns = $conn->query("SHOW COLUMNS FROM enquiries LIKE 'qr_code_path'");
+if ($checkColumns->num_rows == 0) {
+    $conn->query("ALTER TABLE enquiries ADD COLUMN qr_code_path VARCHAR(500) AFTER preferred_contact");
+    $conn->query("ALTER TABLE enquiries ADD COLUMN qr_code_data TEXT AFTER qr_code_path");
+    $conn->query("ALTER TABLE enquiries ADD COLUMN status VARCHAR(50) DEFAULT 'new' AFTER qr_code_data");
+    echo "Added QR code columns to enquiries table.<br>";
 }
 
 // Create default admin user (username: admin, password: admin123)

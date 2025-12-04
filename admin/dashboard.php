@@ -173,8 +173,92 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     }
 }
 
+// Handle enquiry delete
+if (isset($_GET['delete_enquiry']) && is_numeric($_GET['delete_enquiry'])) {
+    $enquiryId = (int)$_GET['delete_enquiry'];
+    $getEnquiry = $conn->query("SELECT qr_code_path FROM enquiries WHERE id = $enquiryId");
+    if ($getEnquiry->num_rows > 0) {
+        $enqData = $getEnquiry->fetch_assoc();
+        // Delete QR code file if exists
+        if (!empty($enqData['qr_code_path'])) {
+            $qrPath = '../' . $enqData['qr_code_path'];
+            if (file_exists($qrPath)) {
+                unlink($qrPath);
+            }
+        }
+        $conn->query("DELETE FROM enquiries WHERE id = $enquiryId");
+        header("Location: dashboard.php?enquiry_deleted=1");
+        exit;
+    }
+}
+
+// Handle enquiry update
+$enquiryUpdateSuccess = '';
+$enquiryUpdateError = '';
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_enquiry'])) {
+    $enquiryId = (int)$_POST['enquiry_id'];
+    $status = trim($_POST['status'] ?? 'new');
+    $updateQuery = $conn->prepare("UPDATE enquiries SET status = ? WHERE id = ?");
+    $updateQuery->bind_param("si", $status, $enquiryId);
+    if ($updateQuery->execute()) {
+        $enquiryUpdateSuccess = "Enquiry updated successfully!";
+    } else {
+        $enquiryUpdateError = "Error updating enquiry: " . $updateQuery->error;
+    }
+    $updateQuery->close();
+}
+
+// Handle view enquiry
+$viewEnquiry = null;
+if (isset($_GET['view_enquiry']) && is_numeric($_GET['view_enquiry'])) {
+    $enquiryId = (int)$_GET['view_enquiry'];
+    $viewQuery = $conn->query("SELECT * FROM enquiries WHERE id = $enquiryId");
+    if ($viewQuery->num_rows > 0) {
+        $viewEnquiry = $viewQuery->fetch_assoc();
+    }
+}
+
+// Handle QR code generation for enquiry
+if (isset($_GET['generate_qr_enquiry']) && is_numeric($_GET['generate_qr_enquiry'])) {
+    $enquiryId = (int)$_GET['generate_qr_enquiry'];
+    $enquiryQuery = $conn->query("SELECT * FROM enquiries WHERE id = $enquiryId");
+    if ($enquiryQuery->num_rows > 0) {
+        $enquiry = $enquiryQuery->fetch_assoc();
+        
+        // Create QR code data - link to enquiry details page
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
+        $host = $_SERVER['HTTP_HOST'];
+        $baseUrl = $protocol . $host;
+        
+        // Get base directory for proper path
+        $baseDir = str_replace('\\', '/', dirname(dirname($_SERVER['SCRIPT_NAME'])));
+        if ($baseDir == '/') $baseDir = '';
+        $qrUrl = $baseUrl . $baseDir . '/pages/qr_enquiry.php?id=' . $enquiryId;
+        
+        // Generate QR code
+        require_once 'generate_qr_enquiry.php';
+        $qrPath = generateEnquiryQRCode($enquiryId, $qrUrl);
+        
+        if ($qrPath) {
+            // Update enquiry with QR code path
+            $updateQr = $conn->prepare("UPDATE enquiries SET qr_code_path = ?, qr_code_data = ? WHERE id = ?");
+            $qrData = $qrUrl;
+            $updateQr->bind_param("ssi", $qrPath, $qrData, $enquiryId);
+            $updateQr->execute();
+            $updateQr->close();
+            
+            header("Location: dashboard.php?qr_generated=1&enquiry_id=$enquiryId&tab=enquiries");
+            exit;
+        }
+    }
+}
+
 // Get all images
 $imagesQuery = $conn->query("SELECT * FROM site_images ORDER BY created_at DESC");
+
+// Get all enquiries (reset query for display)
+$enquiriesResult = $conn->query("SELECT * FROM enquiries ORDER BY created_at DESC");
+$enquiriesCount = $enquiriesResult->num_rows;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -434,6 +518,7 @@ $imagesQuery = $conn->query("SELECT * FROM site_images ORDER BY created_at DESC"
         <div class="dashboard-tabs">
             <button class="tab active" onclick="showTab('upload')">Upload Image</button>
             <button class="tab" onclick="showTab('images')">Manage Images</button>
+            <button class="tab" onclick="showTab('enquiries')">Manage Enquiries</button>
             <button class="tab" onclick="showTab('qrcode')">QR Code Generator</button>
             <button class="tab" onclick="showTab('settings')">Settings</button>
         </div>
@@ -513,6 +598,150 @@ $imagesQuery = $conn->query("SELECT * FROM site_images ORDER BY created_at DESC"
                     </div>
                 <?php else: ?>
                     <p style="text-align: center; color: #666; padding: 40px;">No images uploaded yet.</p>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Enquiries Tab -->
+        <div id="enquiries" class="tab-content">
+            <div class="card">
+                <h2 style="color: #0c2d1a; margin-bottom: 20px;">Travel Enquiries (<?php echo $enquiriesCount; ?>)</h2>
+                
+                <?php if (isset($_GET['enquiry_deleted'])): ?>
+                    <div class="alert alert-success">Enquiry deleted successfully!</div>
+                <?php endif; ?>
+                
+                <?php if (isset($_GET['qr_generated'])): ?>
+                    <div class="alert alert-success">QR code generated successfully! 
+                        <?php if (isset($_GET['enquiry_id'])): 
+                            $enqId = (int)$_GET['enquiry_id'];
+                            $qrEnq = $conn->query("SELECT qr_code_path FROM enquiries WHERE id = $enqId");
+                            if ($qrEnq->num_rows > 0 && $qrData = $qrEnq->fetch_assoc()):
+                                if (!empty($qrData['qr_code_path'])): ?>
+                                    <br><a href="../<?php echo htmlspecialchars($qrData['qr_code_path']); ?>" target="_blank" class="btn" style="margin-top: 10px;">View QR Code</a>
+                                <?php endif; 
+                            endif;
+                        endif; ?>
+                    </div>
+                <?php endif; ?>
+                
+                <?php if ($enquiryUpdateSuccess): ?>
+                    <div class="alert alert-success"><?php echo htmlspecialchars($enquiryUpdateSuccess); ?></div>
+                <?php endif; ?>
+                
+                <?php if ($enquiryUpdateError): ?>
+                    <div class="alert alert-error"><?php echo htmlspecialchars($enquiryUpdateError); ?></div>
+                <?php endif; ?>
+
+                <?php if ($enquiriesCount > 0): ?>
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                            <thead>
+                                <tr style="background: #0c2d1a; color: white;">
+                                    <th style="padding: 12px; text-align: left;">ID</th>
+                                    <th style="padding: 12px; text-align: left;">Name</th>
+                                    <th style="padding: 12px; text-align: left;">Email</th>
+                                    <th style="padding: 12px; text-align: left;">Countries</th>
+                                    <th style="padding: 12px; text-align: left;">Budget</th>
+                                    <th style="padding: 12px; text-align: left;">Status</th>
+                                    <th style="padding: 12px; text-align: left;">Date</th>
+                                    <th style="padding: 12px; text-align: left;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php 
+                                $enquiriesResult->data_seek(0);
+                                while ($enquiry = $enquiriesResult->fetch_assoc()): ?>
+                                    <tr style="border-bottom: 1px solid #e0e0e0;">
+                                        <td style="padding: 12px;">#<?php echo $enquiry['id']; ?></td>
+                                        <td style="padding: 12px;"><?php echo htmlspecialchars($enquiry['first_name'] . ' ' . $enquiry['last_name']); ?></td>
+                                        <td style="padding: 12px;"><?php echo htmlspecialchars($enquiry['email']); ?></td>
+                                        <td style="padding: 12px;"><?php echo htmlspecialchars(substr($enquiry['countries'] ?? 'N/A', 0, 30)); ?></td>
+                                        <td style="padding: 12px;"><?php echo htmlspecialchars($enquiry['budget'] ?? 'N/A'); ?></td>
+                                        <td style="padding: 12px;">
+                                            <span style="padding: 4px 12px; border-radius: 4px; background: <?php echo ($enquiry['status'] ?? 'new') == 'new' ? '#d4edda' : (($enquiry['status'] ?? '') == 'contacted' ? '#fff3cd' : '#f8d7da'); ?>; color: <?php echo ($enquiry['status'] ?? 'new') == 'new' ? '#155724' : (($enquiry['status'] ?? '') == 'contacted' ? '#856404' : '#721c24'); ?>;">
+                                                <?php echo ucfirst($enquiry['status'] ?? 'new'); ?>
+                                            </span>
+                                        </td>
+                                        <td style="padding: 12px;"><?php echo date('M j, Y', strtotime($enquiry['created_at'])); ?></td>
+                                        <td style="padding: 12px;">
+                                            <a href="?view_enquiry=<?php echo $enquiry['id']; ?>&tab=enquiries" class="btn-view" style="padding: 5px 10px; font-size: 0.85rem; margin-right: 5px;">View</a>
+                                            <?php if (!empty($enquiry['qr_code_path'])): ?>
+                                                <a href="../<?php echo htmlspecialchars($enquiry['qr_code_path']); ?>" target="_blank" class="btn-view" style="padding: 5px 10px; font-size: 0.85rem; margin-right: 5px; background: #17a2b8;">QR</a>
+                                            <?php else: ?>
+                                            
+                                            <?php endif; ?>
+                                            <a href="?delete_enquiry=<?php echo $enquiry['id']; ?>" class="btn-delete" style="padding: 5px 10px; font-size: 0.85rem;" onclick="return confirm('Are you sure you want to delete this enquiry?');">Delete</a>
+                                        </td>
+                                    </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <?php if ($viewEnquiry): ?>
+                    <!-- View Enquiry Modal -->
+                    <div id="enquiryModal" style="display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 1000; overflow-y: auto; padding: 20px;">
+                        <div style="max-width: 800px; margin: 40px auto; background: white; border-radius: 10px; padding: 30px; position: relative;">
+                            <span onclick="closeEnquiryModal()" style="position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; color: #666;">&times;</span>
+                            <h2 style="color: #0c2d1a; margin-bottom: 20px;">Enquiry Details #<?php echo $viewEnquiry['id']; ?></h2>
+                            
+                            <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+                                <h3 style="color: #0c2d1a; margin-bottom: 10px;">Contact Information</h3>
+                                <p><strong>Name:</strong> <?php echo htmlspecialchars($viewEnquiry['first_name'] . ' ' . $viewEnquiry['last_name']); ?></p>
+                                <p><strong>Email:</strong> <a href="mailto:<?php echo htmlspecialchars($viewEnquiry['email']); ?>"><?php echo htmlspecialchars($viewEnquiry['email']); ?></a></p>
+                                <p><strong>Phone:</strong> <?php echo htmlspecialchars($viewEnquiry['phone'] ?? 'Not provided'); ?></p>
+                                <p><strong>Preferred Contact:</strong> <?php echo htmlspecialchars($viewEnquiry['preferred_contact'] ?? 'Email'); ?></p>
+                            </div>
+                            
+                            <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+                                <h3 style="color: #0c2d1a; margin-bottom: 10px;">Travel Preferences</h3>
+                                <p><strong>Destination:</strong> <?php echo htmlspecialchars($viewEnquiry['destination_known'] ?? 'Not specified'); ?></p>
+                                <p><strong>Countries:</strong> <?php echo htmlspecialchars($viewEnquiry['countries'] ?? 'Not specified'); ?></p>
+                                <p><strong>Region:</strong> <?php echo htmlspecialchars($viewEnquiry['region'] ?? 'Not specified'); ?></p>
+                                <p><strong>Travel Dates:</strong> <?php echo htmlspecialchars($viewEnquiry['travel_dates'] ?? 'Not specified'); ?></p>
+                                <p><strong>Traveling With:</strong> <?php echo htmlspecialchars($viewEnquiry['travel_with'] ?? 'Not specified'); ?></p>
+                                <p><strong>Budget:</strong> <?php echo htmlspecialchars($viewEnquiry['budget'] ?? 'Not specified'); ?></p>
+                            </div>
+                            
+                            <?php if (!empty($viewEnquiry['trip_details'])): ?>
+                            <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+                                <h3 style="color: #0c2d1a; margin-bottom: 10px;">Trip Details</h3>
+                                <p><?php echo nl2br(htmlspecialchars($viewEnquiry['trip_details'])); ?></p>
+                            </div>
+                            <?php endif; ?>
+                            
+                            <form method="POST" style="margin-top: 20px;">
+                                <input type="hidden" name="enquiry_id" value="<?php echo $viewEnquiry['id']; ?>">
+                                <div class="form-group">
+                                    <label>Status:</label>
+                                    <select name="status" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 5px;">
+                                        <option value="new" <?php echo ($viewEnquiry['status'] ?? 'new') == 'new' ? 'selected' : ''; ?>>New</option>
+                                        <option value="contacted" <?php echo ($viewEnquiry['status'] ?? '') == 'contacted' ? 'selected' : ''; ?>>Contacted</option>
+                                        <option value="closed" <?php echo ($viewEnquiry['status'] ?? '') == 'closed' ? 'selected' : ''; ?>>Closed</option>
+                                    </select>
+                                </div>
+                                <button type="submit" name="update_enquiry" class="btn" style="margin-top: 15px;">Update Status</button>
+                            </form>
+                            
+                            <?php if (!empty($viewEnquiry['qr_code_path'])): ?>
+                            <div style="text-align: center; margin-top: 20px;">
+                                <p><strong>QR Code:</strong></p>
+                                <img src="../<?php echo htmlspecialchars($viewEnquiry['qr_code_path']); ?>" alt="QR Code" style="max-width: 300px; border: 2px solid #e0e0e0; padding: 10px; border-radius: 10px;">
+                                <br>
+                                <a href="../<?php echo htmlspecialchars($viewEnquiry['qr_code_path']); ?>" download class="btn" style="margin-top: 10px;">Download QR Code</a>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <script>
+                        function closeEnquiryModal() {
+                            window.location.href = 'dashboard.php?tab=enquiries';
+                        }
+                    </script>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <p style="text-align: center; color: #666; padding: 40px;">No enquiries yet.</p>
                 <?php endif; ?>
             </div>
         </div>
@@ -604,8 +833,36 @@ $imagesQuery = $conn->query("SELECT * FROM site_images ORDER BY created_at DESC"
 
             // Show selected tab
             document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
         }
+        
+        // Check URL parameter for tab
+        window.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tab = urlParams.get('tab');
+            if (tab) {
+                // Remove active from all
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                
+                // Activate requested tab
+                const tabContent = document.getElementById(tab);
+                if (tabContent) {
+                    tabContent.classList.add('active');
+                    // Find and activate corresponding button
+                    const buttons = document.querySelectorAll('.tab');
+                    buttons.forEach(btn => {
+                        if (btn.textContent.trim().includes('Enquiries') && tab === 'enquiries') {
+                            btn.classList.add('active');
+                        } else if (btn.onclick && btn.onclick.toString().includes(tab)) {
+                            btn.classList.add('active');
+                        }
+                    });
+                }
+            }
+        });
     </script>
 </body>
 </html>
