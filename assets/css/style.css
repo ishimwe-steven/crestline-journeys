@@ -200,7 +200,7 @@ body {
 .hero p{
   margin-bottom: 50px;
 }
-.btn1 {
+.btnst {
    background: gold;
   color: black;
   padding: 30px 55px;
@@ -233,7 +233,7 @@ body {
   transform: scale(1.05);
   box-shadow: 0 20px 40px rgba(45, 46, 8, 24);
 }
-.btn1:hover {
+.btnst:hover {
   background: #a88701; /* darker gold */
   color: white;
   transform: scale(1.05);
@@ -385,7 +385,7 @@ section {
             .hero-image img{
                 object-fit: contain;
             }
-            .btn1 {
+            .btnst {
                 background: gold;
                color: black;
                padding: 20px 45px;

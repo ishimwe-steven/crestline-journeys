@@ -5,7 +5,7 @@
   <div class="hero-content">
     <h1>Explore Africa with <span>Crestline Journeys</span></h1>
     <p>Unforgettable safaris and authentic travel experiences across Rwanda, Uganda, and Tanzania.</p>
-    <button class="btn1" id="openEnquiryModal">ENQUIRE NOW</button>
+    <button class="btnst" id="openEnquiryModal">ENQUIRE NOW</button>
   </div>
 </section>
 
