@@ -54,7 +54,7 @@
         <div class="destination-text">
           <h3>Rwanda</h3>
           <p>Home of the mountain gorillas, misty rainforests, and warm hospitality.</p>
-          <a href="pages/rwanda.php" class="btn-secondary">Learn More</a>
+          <a href="pages/destinations.php#rwanda" class="btn-secondary">Learn More</a>
         </div>
       </div>
 
@@ -63,7 +63,7 @@
         <div class="destination-text">
           <h3>Uganda</h3>
           <p>The Pearl of Africa, rich in biodiversity and cultural experiences.</p>
-          <a href="pages/uganda.php" class="btn-secondary">Learn More</a>
+          <a href="pages/destinations.php#uganda" class="btn-secondary">Learn More</a>
         </div>
       </div>
 
@@ -72,7 +72,7 @@
         <div class="destination-text">
           <h3>Tanzania</h3>
           <p>Witness the Great Migration and the majesty of Mount Kilimanjaro.</p>
-          <a href="pages/tanzania.php" class="btn-secondary">Learn More</a>
+          <a href="pages/destinations.php#tanzania" class="btn-secondary">Learn More</a>
         </div>
       </div>
     </div>

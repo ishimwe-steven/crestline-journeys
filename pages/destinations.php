@@ -9,7 +9,7 @@
 </section>
 
 <!-- ================= RWANDA ================= -->
-<section class="destination-country">
+<section class="destination-country" id="rwanda">
   <div class="container">
     <h2 class="country-title">Rwanda</h2>
     <p class="country-intro">The Land of a Thousand Hills offers pristine nature, mountain gorillas, and warm hospitality.</p>
@@ -63,7 +63,7 @@
 </section>
 
 <!-- ================= UGANDA ================= -->
-<section class="destination-country alt-bg">
+<section class="destination-country alt-bg" id="uganda">
   <div class="container">
     <h2 class="country-title">Uganda</h2>
     <p class="country-intro">The Pearl of Africa, rich in biodiversity, wildlife, and stunning natural beauty.</p>
@@ -106,7 +106,7 @@
 </section>
 
 <!-- ================= TANZANIA ================= -->
-<section class="destination-country">
+<section class="destination-country" id="tanzania">
   <div class="container">
     <h2 class="country-title">Tanzania</h2>
     <p class="country-intro">Home to the Great Migration, Mount Kilimanjaro, and some of Africa's most iconic landscapes.</p>
