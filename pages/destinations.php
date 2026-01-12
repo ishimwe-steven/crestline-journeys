@@ -163,7 +163,7 @@
   <div class="container">
     <h2>Ready to Explore?</h2>
     <p>Let us create a custom itinerary for your dream destination</p>
-    <button class="btn" id="openEnquiryModal">Plan Your Journey</button>
+    <button class="btn" id="openEnquiryModal">Book Now</button>
   </div>
 </div>
 

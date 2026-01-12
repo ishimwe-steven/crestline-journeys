@@ -96,7 +96,7 @@
     <div class="cta-section">
       <h2>Ready to Plan Your Journey?</h2>
       <p>Contact us today and let's create the perfect adventure for you</p>
-      <button class="btn" id="openEnquiryModal">Start Planning</button>
+      <button class="btn" id="openEnquiryModal">Book Now</button>
     </div>
   </div>
 </section>
