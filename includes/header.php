@@ -2,7 +2,7 @@
 // Detect base URL automatically (works for localhost and hosting)
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
 $host = $_SERVER['HTTP_HOST'];
-$base = $protocol . $host . '/';
+$base = $protocol . $host . '/'  // Adjust if my project is in a subfolder ('/crestline-journeys/)
 ?>
 <!DOCTYPE html>
 <html lang="en">

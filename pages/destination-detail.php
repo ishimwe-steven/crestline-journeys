@@ -137,7 +137,7 @@ $destination = $destinations[$destination_slug];
     <div class="destination-cta animate-fade-in-up">
       <h2>Ready to Visit <?php echo htmlspecialchars($destination['name']); ?>?</h2>
       <p>Let us create a custom itinerary for your journey</p>
-      <button class="btn" id="openEnquiryModal">Plan Your Journey</button>
+      <button class="btn" id="openEnquiryModal">Book Now</button>
     </div>
 
   </div>

@@ -200,15 +200,26 @@ body {
 .hero p{
   margin-bottom: 50px;
 }
-
+.btn1 {
+   background: gold;
+  color: black;
+  padding: 30px 55px;
+  text-decoration: none;
+  font-weight: 700;
+  border-radius: 20px;
+  font-size: 28px;
+  display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
 .btn {
   background: gold;
   color: black;
   padding: 30px 55px;
   text-decoration: none;
   font-weight: 700;
-  border-radius: 4px;
-  font-size: 28px;
+  border-radius: 20px;
+  font-size: 24px;
   display: inline-block;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -222,7 +233,12 @@ body {
   transform: scale(1.05);
   box-shadow: 0 20px 40px rgba(45, 46, 8, 24);
 }
-
+.btn1:hover {
+  background: #a88701; /* darker gold */
+  color: white;
+  transform: scale(1.05);
+  box-shadow: 0 20px 40px rgba(45, 46, 8, 24);
+}
 /* Tablet view */
 @media (max-width: 1024px) {
   .btn {
@@ -369,13 +385,22 @@ section {
             .hero-image img{
                 object-fit: contain;
             }
-            .btn {
+            .btn1 {
                 background: gold;
                color: black;
                padding: 20px 45px;
                text-decoration: none;
                font-weight: 600;
-               border-radius: 4px;
+               border-radius: 10px;
+               font-size: 20px;
+            }
+            .btn {
+                background: gold;
+               color: black;
+               padding: 10px 25px;
+               text-decoration: none;
+               font-weight: 400;
+               border-radius: 10px;
             }
             
             .form-row {
