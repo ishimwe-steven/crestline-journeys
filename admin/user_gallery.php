@@ -339,7 +339,7 @@ $editImageId = isset($_GET['edit']) ? (int) $_GET['edit'] : 0;
 </head>
 <body>
     <div class="user-header">
-        <h1>Your Gallery Account</h1>
+        <h1>Crestline Journeys</h1>
         <div class="user-info">
             <span>Welcome, <?php echo htmlspecialchars($adminInfo['username']); ?></span>
             <a href="logout.php">Logout</a>
