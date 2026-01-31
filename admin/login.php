@@ -23,10 +23,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($result->num_rows == 1) {
             $admin = $result->fetch_assoc();
             if (password_verify($password, $admin['password'])) {
+                // Basic account session data
                 $_SESSION['admin_id'] = $admin['id'];
                 $_SESSION['admin_username'] = $admin['username'];
                 $_SESSION['admin_email'] = $admin['email'];
-                header("Location: dashboard.php");
+
+                // Simple role split without changing your database:
+                // - username "admin" => full admin dashboard
+                // - any other username => user gallery account
+                $role = (strtolower($admin['username']) === 'admin') ? 'admin' : 'user';
+                $_SESSION['user_role'] = $role;
+
+                if ($role === 'admin') {
+                    header("Location: dashboard.php");
+                } else {
+                    header("Location: user_gallery.php");
+                }
                 exit;
             } else {
                 $error = "Invalid username or password.";
@@ -45,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - Crestline Journeys</title>
+    <title>Login here- Crestline Journeys</title>
     <style>
         * {
             margin: 0;
@@ -162,8 +174,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <div class="login-container">
         <div class="login-header">
             <div class="logo-placeholder">CJ</div>
-            <h1>Admin Login</h1>
-            <p>Crestline Journeys Admin Portal</p>
+            <h1>Login Here</h1>
+            <p>Crestline Journeys User Only</p>
         </div>
 
         <?php if ($error): ?>

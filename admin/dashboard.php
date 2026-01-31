@@ -1,6 +1,13 @@
 <?php
 include 'auth_check.php';
 
+// Only allow the main admin account to access this full dashboard.
+// Regular users are redirected to their own gallery account page.
+if ($adminInfo['role'] !== 'admin') {
+    header("Location: user_gallery.php");
+    exit;
+}
+
 // Handle settings update (username/password)
 $settingsSuccess = '';
 $settingsError = '';
@@ -55,6 +62,51 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_settings'])) {
                 $settingsError = "New passwords do not match.";
             }
         }
+    }
+}
+
+// Handle creation of gallery-only user accounts
+$userCreateSuccess = '';
+$userCreateError = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_user'])) {
+    $newUserUsername = trim($_POST['user_username'] ?? '');
+    $newUserEmail = trim($_POST['user_email'] ?? '');
+    $newUserPassword = $_POST['user_password'] ?? '';
+    $newUserPasswordConfirm = $_POST['user_password_confirm'] ?? '';
+
+    if ($newUserUsername === '' || $newUserEmail === '' || $newUserPassword === '' || $newUserPasswordConfirm === '') {
+        $userCreateError = "Please fill in all fields.";
+    } elseif (strtolower($newUserUsername) === 'admin') {
+        $userCreateError = "The username 'admin' is reserved for the main admin account.";
+    } elseif (!filter_var($newUserEmail, FILTER_VALIDATE_EMAIL)) {
+        $userCreateError = "Please provide a valid email address.";
+    } elseif ($newUserPassword !== $newUserPasswordConfirm) {
+        $userCreateError = "Passwords do not match.";
+    } elseif (strlen($newUserPassword) < 6) {
+        $userCreateError = "Password must be at least 6 characters long.";
+    } else {
+        // Check for existing username/email
+        $checkStmt = $conn->prepare("SELECT id FROM admin_users WHERE username = ? OR email = ?");
+        $checkStmt->bind_param("ss", $newUserUsername, $newUserEmail);
+        $checkStmt->execute();
+        $existing = $checkStmt->get_result();
+
+        if ($existing->num_rows > 0) {
+            $userCreateError = "Username or email already exists. Please use a different one.";
+        } else {
+            $hashed = password_hash($newUserPassword, PASSWORD_DEFAULT);
+            $insertStmt = $conn->prepare("INSERT INTO admin_users (username, email, password) VALUES (?, ?, ?)");
+            $insertStmt->bind_param("sss", $newUserUsername, $newUserEmail, $hashed);
+
+            if ($insertStmt->execute()) {
+                $userCreateSuccess = "User account created successfully! They can now log in via the same admin login page.";
+            } else {
+                $userCreateError = "Error creating user: " . $insertStmt->error;
+            }
+            $insertStmt->close();
+        }
+        $checkStmt->close();
     }
 }
 
@@ -316,6 +368,7 @@ $enquiriesCount = $enquiriesResult->num_rows;
             gap: 10px;
             margin-bottom: 30px;
             border-bottom: 2px solid #e0e0e0;
+            flex-wrap: wrap;
         }
         .tab {
             padding: 12px 25px;
@@ -326,6 +379,7 @@ $enquiriesCount = $enquiriesResult->num_rows;
             color: #666;
             border-bottom: 3px solid transparent;
             transition: all 0.3s;
+            white-space: nowrap;
         }
         .tab.active {
             color: #0c2d1a;
@@ -503,6 +557,73 @@ $enquiriesCount = $enquiriesResult->num_rows;
         .btn-download:hover {
             background: #218838;
         }
+
+        /* ----------------------------
+           Responsive adjustments
+        -----------------------------*/
+        @media (max-width: 768px) {
+            .admin-header {
+                padding: 15px 20px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .admin-header h1 {
+                font-size: 1.1rem;
+            }
+
+            .admin-header .user-info {
+                width: 100%;
+                justify-content: space-between;
+                flex-wrap: wrap;
+            }
+
+            .container {
+                margin: 20px auto;
+                padding: 0 15px;
+            }
+
+            .dashboard-tabs {
+                overflow-x: auto;
+                padding-bottom: 5px;
+            }
+
+            .tab {
+                flex: 0 0 auto;
+                font-size: 0.9rem;
+                padding: 10px 18px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .images-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .qr-preview img {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .admin-header a {
+                padding: 6px 14px;
+                font-size: 0.85rem;
+            }
+
+            .form-group label {
+                font-size: 0.9rem;
+            }
+
+            .form-group input,
+            .form-group textarea,
+            .form-group select {
+                font-size: 0.9rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -520,6 +641,7 @@ $enquiriesCount = $enquiriesResult->num_rows;
             <button class="tab" onclick="showTab('images')">Manage Images</button>
             <button class="tab" onclick="showTab('enquiries')">Manage Enquiries</button>
             <button class="tab" onclick="showTab('qrcode')">QR Code Generator</button>
+            <button class="tab" onclick="showTab('users')">User Accounts</button>
             <button class="tab" onclick="showTab('settings')">Settings</button>
         </div>
 
@@ -743,6 +865,50 @@ $enquiriesCount = $enquiriesResult->num_rows;
                 <?php else: ?>
                     <p style="text-align: center; color: #666; padding: 40px;">No enquiries yet.</p>
                 <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- User Accounts Tab -->
+        <div id="users" class="tab-content">
+            <div class="card">
+                <h2 style="color: #0c2d1a; margin-bottom: 10px;">Create Gallery User Account</h2>
+                <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px;">
+                    Create simple user accounts that can log in with the same admin login page, but will only
+                    be able to upload and update their own gallery images (no delete, no enquiries).
+                </p>
+
+                <?php if ($userCreateSuccess): ?>
+                    <div class="alert alert-success"><?php echo htmlspecialchars($userCreateSuccess); ?></div>
+                <?php endif; ?>
+
+                <?php if ($userCreateError): ?>
+                    <div class="alert alert-error"><?php echo htmlspecialchars($userCreateError); ?></div>
+                <?php endif; ?>
+
+                <form method="POST">
+                    <div class="form-group">
+                        <label for="user_username">Username *</label>
+                        <input type="text" id="user_username" name="user_username" required placeholder="e.g. john">
+                    </div>
+                    <div class="form-group">
+                        <label for="user_email">Email *</label>
+                        <input type="email" id="user_email" name="user_email" required placeholder="user@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="user_password">Password *</label>
+                        <input type="password" id="user_password" name="user_password" required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="user_password_confirm">Confirm Password *</label>
+                        <input type="password" id="user_password_confirm" name="user_password_confirm" required minlength="6">
+                    </div>
+                    <button type="submit" name="create_user" class="btn">Create User</button>
+                </form>
+
+                <p style="margin-top: 15px; color: #999; font-size: 0.85rem;">
+                    Note: The username <strong>admin</strong> is reserved for the main admin. Any other username
+                    will be treated as a gallery user and redirected to the user gallery account page after login.
+                </p>
             </div>
         </div>
 
