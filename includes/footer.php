@@ -7,7 +7,7 @@
     </div>
     <div class="footer-contact">
       <h4>Contact Us</h4>
-      <p>Email: info@crestjourneys.com</p>
+      <p>Email: Crestlinejourneys@gmail.com</p>
       <p>Phone: +250 782 793 718</p>
     </div>
     <div class="footer-social">

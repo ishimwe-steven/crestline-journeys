@@ -227,7 +227,7 @@
             <div class="info-icon"><i class="fas fa-envelope"></i></div>
             <div>
               <h3>Email</h3>
-              <p><a href="mailto:info@crestlinejourneys.com">info@crestjourneys.com</a></p>
+              <p><a href="mailto:Crestlinejourneys@gmail.com">Crestlinejourneys@gmail.com</a></p>
             </div>
           </div>
           
