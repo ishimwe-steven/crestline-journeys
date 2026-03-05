@@ -235,7 +235,7 @@
             <div class="info-icon"><i class="fas fa-phone"></i></div>
             <div>
               <h3>Phone</h3>
-              <p><a href="tel:+250 782 793 718">+250 782 793 718</a></p>
+              <p><a href="tel:+250 799 909 006">+250 799 909 006</a></p>
             </div>
           </div>
         </div>
